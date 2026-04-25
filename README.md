@@ -12,7 +12,7 @@
 
 ## ✨ Features
 
-- **📊 Match Score (0–100)** — uses TF-IDF vectorization and cosine similarity to compute how well your resume aligns with a job description
+- **📊 Match Score (0–100)** — uses TF-IDF vectorization and cosine similarity to compute how well your resume aligns with a job S
 - **🎯 Skill Gap Analysis** — identifies matching and missing skills from a curated database of 170+ technical and soft skills
 - **🔑 Keyword Extraction** — pulls top keywords from the JD using TF-IDF and shows what's in/missing from your resume
 - **📥 Downloadable Reports** — export results as a styled PDF or plain TXT
