@@ -83,7 +83,8 @@ nlp = load_nlp_model()
 
 # ============================================
 # SKILL DATABASE
-# Covers both software/tech and electrical/electronics skills
+# Covers software, electrical/electronics, telecom/5G,
+# SoC/hardware, modern ML, and soft skills.
 # ============================================
 SKILLS_DB = [
     # Programming languages
@@ -131,6 +132,30 @@ SKILLS_DB = [
     # Electrical domain knowledge
     "kirchhoff", "ohms law", "fourier", "laplace", "frequency response",
     "digital signal processing", "dsp", "analog electronics", "digital electronics",
+    # Telecom / Wireless / Protocols
+    "5g", "5g nr", "4g", "lte", "3gpp", "volte", "voice over lte",
+    "protocol stack", "radio access network", "ran", "physical layer",
+    "mac layer", "rrc", "pdcp", "rlc", "nas", "epc", "5gc", "core network",
+    "phy", "mimo", "ofdm", "beamforming", "sdr", "software defined radio",
+    "wireshark", "tcp/ip", "udp", "ipv4", "ipv6", "dns", "dhcp",
+    "cellular", "wireless communication", "antenna design",
+    # Telecom test equipment
+    "cmw500", "qxdm", "ixia", "spirent", "viavi",
+    # Hardware / SoC / Validation
+    "soc", "system on chip", "asic", "rtl", "verification",
+    "uvm", "systemverilog", "synopsys", "cadence", "vivado",
+    "soc validation", "hardware-software co-design", "firmware",
+    "real-time firmware", "real-time systems", "rtos", "freertos",
+    "device drivers", "i2c", "spi", "uart", "can bus", "modbus",
+    "jtag", "debugger",
+    # Additional modern ML / data
+    "transformers", "huggingface", "langchain", "openai api", "llm",
+    "rag", "vector database", "fine-tuning", "feature engineering",
+    "model deployment", "mlops", "kubeflow", "mlflow",
+    # Embedded keywords often in JDs
+    "system modeling", "control loop", "closed loop", "open loop",
+    "transient response", "stability analysis", "low-power design",
+    "power management", "battery management",
     # Soft skills
     "communication", "teamwork", "leadership", "problem solving",
     "analytical thinking", "project management", "collaboration",
@@ -201,8 +226,14 @@ def extract_text_from_file(uploaded_file):
 # ============================================
 
 def clean_text(text):
-    """Lowercase the text and remove extra whitespace and weird characters."""
+    """
+    Lowercase the text and remove extra whitespace and weird characters.
+    Also strips PDF CID artifacts like (cid:131) that appear when
+    PDFs use custom/icon fonts that pdfplumber can't decode.
+    """
     text = text.lower()
+    # Remove PDF CID artifacts (e.g., "(cid:131)" from icon fonts)
+    text = re.sub(r'\(cid:\d+\)', ' ', text)
     text = re.sub(r'\s+', ' ', text)
     text = re.sub(r'[^a-z0-9+.#/\s-]', ' ', text)
     return text.strip()
@@ -341,24 +372,20 @@ def generate_pdf_report(score, matched_skills, missing_skills, matched_keywords,
         bottomMargin=0.6 * inch
     )
 
-    # Helper to clean text for PDF (emoji strip + markdown conversion)
     def clean_for_pdf(text):
         """Remove emojis but keep useful Unicode (em-dash, en-dash, smart quotes)."""
-        # Replace useful Unicode chars with ASCII equivalents BEFORE stripping
         replacements = {
-            '\u2014': '--',   # em-dash —
-            '\u2013': '-',    # en-dash –
-            '\u2018': "'",    # left single quote '
-            '\u2019': "'",    # right single quote '
-            '\u201c': '"',    # left double quote "
-            '\u201d': '"',    # right double quote "
-            '\u2026': '...',  # ellipsis …
+            '\u2014': '--',   # em-dash
+            '\u2013': '-',    # en-dash
+            '\u2018': "'",    # left single quote
+            '\u2019': "'",    # right single quote
+            '\u201c': '"',    # left double quote
+            '\u201d': '"',    # right double quote
+            '\u2026': '...',  # ellipsis
         }
         for old, new in replacements.items():
             text = text.replace(old, new)
-        # Now strip remaining non-ASCII (emojis, etc.)
         text = re.sub(r'[^\x00-\x7F]+', '', text)
-        # Convert markdown
         text = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text)
         text = re.sub(r'\*(.+?)\*', r'<i>\1</i>', text)
         return text.strip()
@@ -399,22 +426,21 @@ def generate_pdf_report(score, matched_skills, missing_skills, matched_keywords,
         parent=styles['Heading1'],
         fontSize=40,
         alignment=0,
-        spaceAfter=0,   # no auto-space after; we control spacing manually
-        leading=44,     # line height (must be >= fontSize for big text)
+        spaceAfter=0,
+        leading=44,
     )
 
-    # Color-code the score (calibrated to realistic TF-IDF ranges)
     if score < 15:
-        score_color = HexColor('#c0392b')  # red
+        score_color = HexColor('#c0392b')
         score_label = "Poor Match"
     elif score < 30:
-        score_color = HexColor('#d68910')  # amber
+        score_color = HexColor('#d68910')
         score_label = "Moderate Match"
     elif score < 50:
-        score_color = HexColor('#1e8449')  # green
+        score_color = HexColor('#1e8449')
         score_label = "Strong Match"
     else:
-        score_color = HexColor('#0e6655')  # darker green
+        score_color = HexColor('#0e6655')
         score_label = "Excellent Match"
     score_style.textColor = score_color
 
@@ -433,9 +459,9 @@ def generate_pdf_report(score, matched_skills, missing_skills, matched_keywords,
     # Match Score
     story.append(Paragraph("Match Score", section_heading))
     story.append(Paragraph(f"{score}%", score_style))
-    story.append(Spacer(1, 0.05 * inch))  # small gap between score and label
+    story.append(Spacer(1, 0.05 * inch))
     story.append(Paragraph(f"<b>{score_label}</b>", label_style))
-    story.append(Spacer(1, 0.15 * inch))  # bigger gap before next section
+    story.append(Spacer(1, 0.15 * inch))
 
     # Matching Skills
     story.append(Paragraph("Matching Skills", section_heading))
@@ -469,7 +495,7 @@ def generate_pdf_report(score, matched_skills, missing_skills, matched_keywords,
     story.append(Paragraph("Suggestions to Improve", section_heading))
     for tip in tips:
         clean_tip = clean_for_pdf(tip)
-        story.append(Paragraph(f"&bull; {clean_tip}", body_style))
+        story.append(Paragraph(f"• {clean_tip}", body_style))
 
     # Footer
     story.append(Spacer(1, 0.3 * inch))
@@ -577,9 +603,16 @@ if analyze_clicked:
                     elif jd_skills:
                         st.success("You've covered all skills from the JD that are in our database!")
                     else:
-                        st.info(
-                            "No skills from our database were detected in the job description. "
-                            "See the general keyword analysis below."
+                        st.warning(
+                            "🤔 **This JD doesn't list specific tools or technologies.**\n\n"
+                            "Many corporate JDs (especially from large companies) describe roles "
+                            "in vague business language rather than listing concrete skills. "
+                            "This isn't necessarily bad — but it means our skill-matching "
+                            "can't help much here.\n\n"
+                            "**What to do:**\n"
+                            "- Check the **Top Keywords** section below to see what the JD emphasizes\n"
+                            "- Research the company's actual tech stack on LinkedIn or Glassdoor\n"
+                            "- Look at the company's engineering blog or job postings for similar roles"
                         )
 
                 # Top keywords analysis
@@ -699,7 +732,7 @@ st.markdown("""
 <div style="text-align: center; padding: 1rem 0; color: rgba(255,255,255,0.6); font-size: 0.9rem;">
     Built with ❤️ using Streamlit · pdfplumber · spaCy · scikit-learn<br>
     <span style="font-size: 0.85rem;">
-        Open source · View on <a href="https://github.com/" style="color: #4fc3f7;">GitHub</a>
+        Open source · View on <a href="https://github.com/Sav04/resume-analyzer" style="color: #4fc3f7;">GitHub</a>
     </span>
 </div>
 """, unsafe_allow_html=True)
