@@ -2,7 +2,7 @@
 
 > AI-powered tool that analyzes your resume against any job description and gives you a match score, missing keywords, and improvement tips.
 
-🔗 **[Live Demo](#)** *(URL will be added after deployment)*
+🔗 **[Live Demo](https://sav04-resume-analyzer.streamlit.app)** — Try it out!
 
 ![Python](https://img.shields.io/badge/python-3.12-blue.svg)
 ![Streamlit](https://img.shields.io/badge/streamlit-1.38-red.svg)
